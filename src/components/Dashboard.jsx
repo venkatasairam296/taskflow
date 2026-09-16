@@ -8,6 +8,12 @@ const Dashboard = () => {
   const [editingTaskId, setEditingTaskId] = useState(null);
   const [taskTitle, setTaskTitle] = useState("");
   const [taskStatus, setTaskStatus] = useState("pending");
+  const [priority, setPriority] = useState("low");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [priorityFilter, setPriorityFilter] = useState('all');
+  const [category, setCategory] = useState("learning");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [dueDate, setDueDate] = useState(new Date().toISOString().split('T')[0]);
 
   function handleTask() {
     if (taskTitle.trim() === "") {
@@ -15,14 +21,17 @@ const Dashboard = () => {
     }
 
     if (editingTaskId === null) {
-      addTask(taskTitle.trim(), taskStatus);
+      addTask(taskTitle.trim(), taskStatus, priority, category, dueDate);
     } else {
-      editTask(taskTitle.trim(), taskStatus, editingTaskId);
+      editTask(taskTitle.trim(), taskStatus, editingTaskId, priority, category, dueDate);
       setEditingTaskId(null);
     }
 
     setTaskTitle("");
     setTaskStatus("pending");
+    setPriority("low");
+    setCategory("learning");
+    setDueDate(new Date().toISOString().split('T')[0]);
   }
 
   function handleEdit(id) {
@@ -32,6 +41,9 @@ const Dashboard = () => {
 
     setTaskTitle(task.title);
     setTaskStatus(task.status);
+    setPriority(task.priority);
+    setCategory(task.category);
+    setDueDate(task.dueDate);
   }
 
   const allCount = tasks.length;
@@ -104,6 +116,35 @@ const Dashboard = () => {
               <option value="in-progress">In Progress</option>
               <option value="completed">Completed</option>
             </select>
+            
+            <select
+              value={priority}
+              onChange={(e) => setPriority(e.target.value)}
+              className="rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+            >
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+            </select>
+            
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+            >
+              <option value="learning">Learning</option>
+              <option value="work">Work</option>
+              <option value="personal">Personal</option>
+              <option value="project">Project</option>
+              <option value="other">Other</option>
+            </select>
+
+            <input
+              type="date"
+              value={dueDate}
+              onChange={(e) => setDueDate(e.target.value)}
+              className="rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+            />
 
             <button
               onClick={handleTask}
@@ -118,6 +159,9 @@ const Dashboard = () => {
                   setEditingTaskId(null);
                   setTaskTitle("");
                   setTaskStatus("pending");
+                  setPriority("low");
+                  setCategory("learning");
+                  setDueDate(new Date().toISOString().split('T')[0]);
                 }}
                 className="rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 active:scale-[0.98]"
               >
@@ -187,7 +231,7 @@ const Dashboard = () => {
             </p>
           </div>
 
-          <TaskBoard handleEdit={handleEdit} />
+          <TaskBoard handleEdit={handleEdit} searchTerm={searchTerm} setSearchTerm={setSearchTerm} priorityFilter={priorityFilter} setPriorityFilter={setPriorityFilter} categoryFilter={categoryFilter} setCategoryFilter={setCategoryFilter} />
         </div>
 
       </div>

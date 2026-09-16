@@ -7,41 +7,56 @@ const initialTasks = [
   {
     id: 1,
     title: "Learn React",
-    status: "pending"
+    status: "pending",
+    priority: "high",
+    category: "learning",
+    dueDate: "2026-09-20"
   },
   {
     id: 2,
     title: "Build TaskFlow",
-    status: "in-progress"
+    status: "in-progress",
+    priority: "high",
+    category: "project",
+    dueDate: "2026-09-25"
   },
   {
     id: 3,
     title: "Practice JavaScript",
-    status: "completed"
+    status: "completed",
+    priority: "medium",
+    category: "learning",
+    dueDate: "2026-09-15"
   }
-];
+];   
 
 export function TaskProvider({children}) {
   const [tasks, setTasks] = useLocalStorage("tasks", initialTasks);
 
-  function addTask(title, status) {
+  function addTask(title, status, priority, category, dueDate) {
     const newTask = {
       id: Date.now(),
       title,
-      status
+      status,
+      priority,
+      category,
+      dueDate
     };
 
     setTasks((prevTasks) => [...prevTasks, newTask]);
   }
 
-  function editTask(title, status, editingTaskId) {
+  function editTask(title, status, editingTaskId, priority, category, dueDate) {
     setTasks((prevTasks) =>
       prevTasks.map((task) => {
         if (task.id === editingTaskId) {
           return {
             ...task,
             title,
-            status
+            status,
+            priority,
+            category,
+            dueDate
           };
         }
 
