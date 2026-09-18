@@ -13,18 +13,12 @@ const TaskBoard = ({
   setDueDateFilter, 
   sortOption,
   setSortOption,
-  clearFilters
+  clearFilters,
+  hasActiveFilters
 }) => {
   const { tasks } = useTasks();
 
   const today = new Date().toISOString().split("T")[0];
-
-  const hasActiveFilters =
-    searchTerm !== "" ||
-    priorityFilter !== "all" ||
-    categoryFilter !== "all" ||
-    dueDateFilter !== "all" ||
-    sortOption !== "none";
 
   const filteredTasks = tasks.filter((task) => {
     const matchesSearch = task.title
@@ -74,7 +68,10 @@ const TaskBoard = ({
     }
 
     return 0;
-  })
+  });
+
+  const hasTasks = tasks.length > 0;
+  const hasNoMatchingTasks = sortedTasks.length === 0;
   
   const pendingTasks = sortedTasks.filter(
     (task) => task.status === "pending"
@@ -166,6 +163,40 @@ const TaskBoard = ({
           </button>
         )}
       </div>
+
+      {hasNoMatchingTasks && (
+        <div className="mb-5 rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center shadow-sm">
+          {hasTasks && hasActiveFilters ? (
+            <>
+              <h3 className="text-lg font-semibold text-slate-900">
+                No tasks match your filters
+              </h3>
+
+              <p className="mt-2 text-sm text-slate-500">
+                Try changing your search or filters to find more tasks.
+              </p>
+
+              <button
+                onClick={clearFilters}
+                className="mt-5 rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-700"
+              >
+                Clear Filters
+              </button>
+            </>
+          ) : (
+            <>
+              <h3 className="text-lg font-semibold text-slate-900">
+                No tasks yet
+              </h3>
+
+              <p className="mt-2 text-sm text-slate-500">
+                Add a task above to get started.
+              </p>
+            </>
+          )}
+        </div>
+      )}
+
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
 
         <TaskColumn

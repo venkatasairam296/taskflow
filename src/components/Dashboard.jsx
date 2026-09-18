@@ -24,6 +24,14 @@ const Dashboard = () => {
     setDueDateFilter("all");
     setSortOption("none");
   }
+
+  const hasActiveFilters =
+    searchTerm.trim() !== "" ||
+    priorityFilter !== "all" ||
+    categoryFilter !== "all" ||
+    dueDateFilter !== "all" ||
+    sortOption !== "none";
+
   function handleTask() {
     if (taskTitle.trim() === "") {
       return;
@@ -307,6 +315,7 @@ const Dashboard = () => {
             sortOption={sortOption}
             setSortOption={setSortOption}
             clearFilters={clearFilters}
+            hasActiveFilters={hasActiveFilters}
           />
         </div>
 
