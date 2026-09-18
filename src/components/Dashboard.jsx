@@ -69,6 +69,27 @@ const Dashboard = () => {
     (task) => task.status === "completed"
   ).length;
 
+  const today = new Date().toISOString().split("T")[0];
+
+  const overdueCount = tasks.filter(
+    (task) => 
+      task.dueDate &&
+      task.dueDate < today &&
+      task.status !== "completed"
+  ).length;
+  
+  const dueTodayCount = tasks.filter(
+    (task) => 
+      task.dueDate &&
+      task.dueDate === today &&
+      task.status !== "completed"
+  ).length;
+
+  const completionRate = 
+    allCount === 0 
+      ? 0
+      : Math.round((completedCount / allCount) * 100);
+
   return (
     <section className="min-h-screen bg-slate-50 px-4 py-8 md:px-6 md:py-10">
       <div className="mx-auto max-w-7xl">
@@ -181,7 +202,7 @@ const Dashboard = () => {
         </div>
 
         {/* Task Stats */}
-        <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-4">
+        <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
 
           {/* All */}
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
@@ -224,6 +245,39 @@ const Dashboard = () => {
 
             <p className="mt-2 text-3xl font-bold text-emerald-900">
               {completedCount}
+            </p>
+          </div>
+
+          {/* Overdue */}
+          <div className="rounded-2xl border border-red-200 bg-red-50 p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+            <p className="text-sm font-medium text-red-700">
+              Overdue
+            </p>
+
+            <p className="mt-2 text-3xl font-bold text-red-900">
+              {overdueCount}
+            </p>
+          </div>
+
+          {/* Due Today */}
+          <div className="rounded-2xl border border-orange-200 bg-orange-50 p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+            <p className="text-sm font-medium text-orange-700">
+              Due Today
+            </p>
+
+            <p className="mt-2 text-3xl font-bold text-orange-900">
+              {dueTodayCount}
+            </p>
+          </div>
+
+          {/* Completion Rate */}
+          <div className="rounded-2xl border border-violet-200 bg-violet-50 p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+            <p className="text-sm font-medium text-violet-700">
+              Completion Rate
+            </p>
+
+            <p className="mt-2 text-3xl font-bold text-violet-900">
+              {completionRate}%
             </p>
           </div>
         </div>
