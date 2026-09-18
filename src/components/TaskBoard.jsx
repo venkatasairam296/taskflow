@@ -1,8 +1,10 @@
 import useTasks from "../hooks/useTasks";
 import TaskColumn from "./TaskColumn";
 
-const TaskBoard = ({ handleEdit, searchTerm, setSearchTerm, priorityFilter, setPriorityFilter, categoryFilter, setCategoryFilter }) => {
+const TaskBoard = ({ handleEdit, searchTerm, setSearchTerm, priorityFilter, setPriorityFilter, categoryFilter, setCategoryFilter, dueDateFilter, setDueDateFilter }) => {
   const { tasks } = useTasks();
+
+  const today = new Date().toISOString().split("T")[0];
 
   const filteredTasks = tasks.filter((task) => {
     const matchesSearch = task.title
@@ -17,7 +19,19 @@ const TaskBoard = ({ handleEdit, searchTerm, setSearchTerm, priorityFilter, setP
       categoryFilter === "all" ||
       task.category === categoryFilter;
 
-    return matchesSearch && matchesPriority && matchesCategory;
+    const matchesDueDate = 
+      dueDateFilter  === "all" ||
+      (dueDateFilter === 'overdue' &&
+        task.dueDate &&
+        task.dueDate < today) ||
+      (dueDateFilter === 'today' &&
+        task.dueDate &&
+        task.dueDate === today) ||
+      (dueDateFilter === 'upcoming' &&
+        task.dueDate &&
+        task.dueDate > today);
+
+    return matchesSearch && matchesPriority && matchesCategory && matchesDueDate;
   });
   
   const pendingTasks = filteredTasks.filter(
@@ -70,6 +84,20 @@ const TaskBoard = ({ handleEdit, searchTerm, setSearchTerm, priorityFilter, setP
             <option value="personal">Personal</option>
             <option value="project">Project</option>
             <option value="other">Other</option>
+          </select>
+        </label>
+
+        <label>
+          Due Date:
+          <select
+            value={dueDateFilter}
+            onChange={(e) => setDueDateFilter(e.target.value)}
+            className="rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+          >
+            <option value="all">All</option>
+            <option value="overdue">Overdue</option>
+            <option value="today">Due Today</option>
+            <option value="upcoming">Upcoming</option>
           </select>
         </label>
       </div>

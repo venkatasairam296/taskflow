@@ -14,6 +14,8 @@ const Dashboard = () => {
   const [category, setCategory] = useState("learning");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [dueDate, setDueDate] = useState(new Date().toISOString().split('T')[0]);
+  const [dueDateFilter, setDueDateFilter] = useState("all");
+
 
   function handleTask() {
     if (taskTitle.trim() === "") {
@@ -231,7 +233,7 @@ const Dashboard = () => {
             </p>
           </div>
 
-          <TaskBoard handleEdit={handleEdit} searchTerm={searchTerm} setSearchTerm={setSearchTerm} priorityFilter={priorityFilter} setPriorityFilter={setPriorityFilter} categoryFilter={categoryFilter} setCategoryFilter={setCategoryFilter} />
+          <TaskBoard handleEdit={handleEdit} searchTerm={searchTerm} setSearchTerm={setSearchTerm} priorityFilter={priorityFilter} setPriorityFilter={setPriorityFilter} categoryFilter={categoryFilter} setCategoryFilter={setCategoryFilter} dueDateFilter={dueDateFilter} setDueDateFilter={setDueDateFilter} />
         </div>
 
       </div>
