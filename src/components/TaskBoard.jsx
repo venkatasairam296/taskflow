@@ -1,10 +1,30 @@
 import useTasks from "../hooks/useTasks";
 import TaskColumn from "./TaskColumn";
 
-const TaskBoard = ({ handleEdit, searchTerm, setSearchTerm, priorityFilter, setPriorityFilter, categoryFilter, setCategoryFilter, dueDateFilter, setDueDateFilter }) => {
+const TaskBoard = ({ 
+  handleEdit, 
+  searchTerm, 
+  setSearchTerm, 
+  priorityFilter, 
+  setPriorityFilter, 
+  categoryFilter, 
+  setCategoryFilter, 
+  dueDateFilter, 
+  setDueDateFilter, 
+  sortOption,
+  setSortOption,
+  clearFilters
+}) => {
   const { tasks } = useTasks();
 
   const today = new Date().toISOString().split("T")[0];
+
+  const hasActiveFilters =
+    searchTerm !== "" ||
+    priorityFilter !== "all" ||
+    categoryFilter !== "all" ||
+    dueDateFilter !== "all" ||
+    sortOption !== "none";
 
   const filteredTasks = tasks.filter((task) => {
     const matchesSearch = task.title
@@ -33,16 +53,38 @@ const TaskBoard = ({ handleEdit, searchTerm, setSearchTerm, priorityFilter, setP
 
     return matchesSearch && matchesPriority && matchesCategory && matchesDueDate;
   });
+
+  const sortedTasks = [...filteredTasks].sort((a, b) => {
+    if(sortOption === 'due-asc'){
+      return a.dueDate.localeCompare(b.dueDate);
+    }
+    
+    if(sortOption === 'due-desc'){
+      return b.dueDate.localeCompare(a.dueDate);
+    }
+
+    if(sortOption === 'priority'){
+      const priorityRank = {
+        high : 3,
+        medium: 2,
+        low: 1,
+      };
+
+      return priorityRank[b.priority] - priorityRank[a.priority];
+    }
+
+    return 0;
+  })
   
-  const pendingTasks = filteredTasks.filter(
+  const pendingTasks = sortedTasks.filter(
     (task) => task.status === "pending"
   );
 
-  const inProgressTasks = filteredTasks.filter(
+  const inProgressTasks = sortedTasks.filter(
     (task) => task.status === "in-progress"
   );
 
-  const completedTasks = filteredTasks.filter(
+  const completedTasks = sortedTasks.filter(
     (task) => task.status === "completed"
   );
 
@@ -100,6 +142,29 @@ const TaskBoard = ({ handleEdit, searchTerm, setSearchTerm, priorityFilter, setP
             <option value="upcoming">Upcoming</option>
           </select>
         </label>
+
+        <label>
+          Sort:
+          <select
+            value={sortOption}
+            onChange={(e) => setSortOption(e.target.value)}
+            className="rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+          >
+            <option value="none">Default</option>
+            <option value="due-asc">Due Date: Nearest</option>
+            <option value="due-desc">Due Date: Farthest</option>
+            <option value="priority">Priority: High → Low</option>
+          </select>
+        </label>
+
+        {hasActiveFilters && (
+            <button
+            onClick={clearFilters}
+            className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+          >
+            Clear Filters
+          </button>
+        )}
       </div>
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
 

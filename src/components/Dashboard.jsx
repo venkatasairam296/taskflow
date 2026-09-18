@@ -15,8 +15,15 @@ const Dashboard = () => {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [dueDate, setDueDate] = useState(new Date().toISOString().split('T')[0]);
   const [dueDateFilter, setDueDateFilter] = useState("all");
+  const [sortOption, setSortOption] = useState('none');
 
-
+  function clearFilters(){
+    setSearchTerm("");
+    setPriorityFilter("all");
+    setCategoryFilter("all");
+    setDueDateFilter("all");
+    setSortOption("none");
+  }
   function handleTask() {
     if (taskTitle.trim() === "") {
       return;
@@ -233,7 +240,20 @@ const Dashboard = () => {
             </p>
           </div>
 
-          <TaskBoard handleEdit={handleEdit} searchTerm={searchTerm} setSearchTerm={setSearchTerm} priorityFilter={priorityFilter} setPriorityFilter={setPriorityFilter} categoryFilter={categoryFilter} setCategoryFilter={setCategoryFilter} dueDateFilter={dueDateFilter} setDueDateFilter={setDueDateFilter} />
+          <TaskBoard 
+            handleEdit={handleEdit} 
+            searchTerm={searchTerm} 
+            setSearchTerm={setSearchTerm} 
+            priorityFilter={priorityFilter} 
+            setPriorityFilter={setPriorityFilter} 
+            categoryFilter={categoryFilter} 
+            setCategoryFilter={setCategoryFilter} 
+            dueDateFilter={dueDateFilter} 
+            setDueDateFilter={setDueDateFilter}
+            sortOption={sortOption}
+            setSortOption={setSortOption}
+            clearFilters={clearFilters}
+          />
         </div>
 
       </div>
