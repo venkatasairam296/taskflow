@@ -197,30 +197,30 @@ const TaskBoard = ({
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+      {!hasNoMatchingTasks && (
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+          <TaskColumn
+            title="Pending"
+            status="pending"
+            tasks={pendingTasks}
+            handleEdit={handleEdit}
+          />
 
-        <TaskColumn
-          title="Pending"
-          status="pending"
-          tasks={pendingTasks}
-          handleEdit={handleEdit}
-        />
+          <TaskColumn
+            title="In Progress"
+            status="in-progress"
+            tasks={inProgressTasks}
+            handleEdit={handleEdit}
+          />
 
-        <TaskColumn
-          title="In Progress"
-          status="in-progress"
-          tasks={inProgressTasks}
-          handleEdit={handleEdit}
-        />
-
-        <TaskColumn
-          title="Completed"
-          status="completed"
-          tasks={completedTasks}
-          handleEdit={handleEdit}
-        />
-
-      </div>
+          <TaskColumn
+            title="Completed"
+            status="completed"
+            tasks={completedTasks}
+            handleEdit={handleEdit}
+          />
+        </div>
+      )}
     </div>
   );
 };

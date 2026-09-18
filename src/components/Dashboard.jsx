@@ -16,6 +16,7 @@ const Dashboard = () => {
   const [dueDate, setDueDate] = useState(new Date().toISOString().split('T')[0]);
   const [dueDateFilter, setDueDateFilter] = useState("all");
   const [sortOption, setSortOption] = useState('none');
+  const [titleError, setTitleError] = useState("");
 
   function clearFilters(){
     setSearchTerm("");
@@ -34,8 +35,11 @@ const Dashboard = () => {
 
   function handleTask() {
     if (taskTitle.trim() === "") {
+      setTitleError("Task title is required.");
       return;
     }
+
+    setTitleError("");
 
     if (editingTaskId === null) {
       addTask(taskTitle.trim(), taskStatus, priority, category, dueDate);
@@ -136,14 +140,30 @@ const Dashboard = () => {
               type="text"
               placeholder="What needs to be done?"
               value={taskTitle}
-              onChange={(e) => setTaskTitle(e.target.value)}
+              onChange={(e) => {
+                setTaskTitle(e.target.value)
+
+                if(titleError){
+                  setTitleError("");
+                }
+              }}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   handleTask();
                 }
               }}
-              className="min-w-0 flex-1 rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+              className={`min-w-0 flex-1 rounded-xl border bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:bg-white focus:ring-4 ${
+                titleError
+                  ? "border-red-500 focus:border-red-500 focus:ring-red-100"
+                  : "border-slate-300 focus:border-blue-500 focus:ring-blue-100"
+              }`}
             />
+            
+            {titleError && (
+              <p className="text-sm font-medium text-red-600">
+                {titleError}
+              </p>
+            )}
 
             <select
               value={taskStatus}
