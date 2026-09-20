@@ -232,3 +232,8 @@ GitHub: `https://github.com/YOUR_USERNAME`
 ---
 
 ⭐ If you find this project useful, consider giving it a star!
+
+
+## Development
+
+TaskFlow is currently being developed as a React task management application.
