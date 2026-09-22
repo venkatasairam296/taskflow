@@ -237,3 +237,4 @@ GitHub: `https://github.com/YOUR_USERNAME`
 ## Development
 
 TaskFlow is currently being developed as a React task management application.
+This line was added on the conflict branch.
