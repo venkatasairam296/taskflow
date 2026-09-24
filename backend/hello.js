@@ -1,3 +1,3 @@
-import add from './math.js';
+import 'dotenv/config';
 
-console.log(add(10, 20));
+console.log(process.env.NODE_ENV);

@@ -5,7 +5,7 @@
   "main": "hello.js",
   "scripts": {
     "start": "node hello.js",
-    "dev" :"nodemon hello.js"
+    "dev": "nodemon hello.js"
   },
   "keywords": [],
   "author": "",
@@ -13,5 +13,8 @@
   "type": "module",
   "devDependencies": {
     "nodemon": "^3.1.14"
+  },
+  "dependencies": {
+    "dotenv": "^18.0.3"
   }
 }
