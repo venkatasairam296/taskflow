@@ -1,12 +1,12 @@
 import http from 'http';
 
+const tasks = [
+  { id: 1, title: "Learn Node.js" },
+  { id: 2, title: "Build API" }
+];
+
 const server = http.createServer((req, res) => {
   if(req.method === "GET" && req.url === "/api/tasks"){
-    const tasks = [
-      { id: 1, title: "Learn Node.js" },
-      { id: 2, title: "Build API" }
-    ];
-
     res.setHeader("Content-Type", "application/json");
     
     res.statusCode = 200;
@@ -25,21 +25,43 @@ const server = http.createServer((req, res) => {
 
     
     req.on("end", () => {
-      const task = JSON.parse(body);
-      
-      console.log(task);
-      console.log(task.title);
-      console.log(task.priority);
-      
-      res.statusCode = 201;
-      res.setHeader("Content-Type", "application/json");
-  
-      res.end(JSON.stringify({
-        message: "Task created successfully",
-        task: task
-      }))
+      try {
+        const task = {
+          id: tasks.length + 1,
+          ...JSON.parse(body)
+        };
+        
+        if(!task.title){
+          res.statusCode = 400;
+          res.setHeader("Content-Type", "application/json");
+          res.end(JSON.stringify({
+            message: "Title is required"
+          }));
+
+          return;
+        }
+        tasks.push(task);
+        
+        console.log(task);
+        console.log(task.title);
+        console.log(task.priority);
+        
+        res.statusCode = 201;
+        res.setHeader("Content-Type", "application/json");
+        
+        res.end(JSON.stringify({
+          message: "Task created successfully",
+          task: task
+        }));
+      } catch (error) {
+        res.statusCode = 400;
+        res.setHeader("Content-Type", "application/json");
+        res.end(JSON.stringify({
+          message: "invalid JSON"
+        }));
+      }
     });
-    
+
     return;
   }
 
