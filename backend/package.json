@@ -4,10 +4,14 @@
   "description": "",
   "main": "hello.js",
   "scripts": {
-    "start": "node hello.js"
+    "start": "node hello.js",
+    "dev" :"nodemon hello.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "module"
+  "type": "module",
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
 }
