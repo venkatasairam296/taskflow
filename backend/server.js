@@ -1,20 +1,104 @@
 import http from 'http';
 
 const tasks = [
-  { id: 1, title: "Learn Node.js" },
-  { id: 2, title: "Build API" }
+  { id: 1, title: "Learn Node.js", status: "pending", priority: "high" },
+  { id: 2, title: "Build API", status: "completed", priority: "low" },
+  { id: 3, title: "Practice HTTP", status: "pending", priority: "low" }
 ];
 
+const allowedStatus = [
+  "pending",
+  "in-progress",
+  "completed"
+];
+
+const allowedPriority = [
+  "low",
+  "medium",
+  "high"
+];
+
+function sendJson(res, statusCode, data, message){
+  res.statusCode = statusCode;
+  res.setHeader("Content-Type", "application/json");
+  
+  if(message && (data !== undefined && data !== null)){
+    res.end(JSON.stringify({
+      "success": true,
+      message,
+      data
+    }));
+  }else if(data !== undefined && data !== null){
+    res.end(JSON.stringify({
+      "success": true,
+      data
+    }));
+  }else{
+    res.end(JSON.stringify({
+      "success": true,
+      message
+    }));
+  }
+}
+
+function sendError(res, statusCode, message){
+  res.statusCode = statusCode;
+  res.setHeader("Content-Type", "application/json");
+  
+  res.end(JSON.stringify({
+    "success": false,
+    message
+  }));
+}
+
 const server = http.createServer((req, res) => {
-  if(req.method === "GET" && req.url === "/api/tasks"){
-    res.setHeader("Content-Type", "application/json");
+  const url = new URL(req.url, `http://${req.headers.host}`);
+
+  if(req.method === "GET" && url.pathname === "/api/tasks"){
+    const status = url.searchParams.get("status");
+    const priority = url.searchParams.get("priority");
+
+    const filteredTasks = tasks.filter((task) => {
+      if(status && task.status !== status){
+        return false;
+      }
+
+      if(priority && task.priority !== priority){
+        return false;
+      }
+
+      return true;
+    })
+
+    console.log(filteredTasks);
     
-    res.statusCode = 200;
-    res.end(JSON.stringify(tasks));
+    sendJson(res, 200, filteredTasks);
+    return;
+  }
+
+  if(req.method === "GET" && url.pathname.startsWith("/api/tasks/")){
+    const parts = url.pathname.split('/');
+    const id = Number(parts[3]);
+
+    if(Number.isNaN(id)){
+      sendError(res, 400, "Invalid ID format");
+      
+      return;
+    }
+    
+    const task = tasks.find((task) => task.id === id);
+    
+    if(!task){
+      sendError(res, 404, "Task not found");
+
+      return;
+    }
+
+    sendJson(res, 200, task);
     return;
   }
   
-  if(req.method === "POST" && req.url === '/api/tasks'){
+  if(req.method === "POST" && url.pathname === '/api/tasks'){
     console.log("POST request received");
 
     let body = "";
@@ -26,58 +110,61 @@ const server = http.createServer((req, res) => {
     
     req.on("end", () => {
       try {
+        const ids = tasks.length === 0 ? [0] : tasks.map((task) => task.id);
+        const newId = Math.max(...ids) + 1;
+
         const task = {
-          id: tasks.length + 1,
+          id: newId,
           ...JSON.parse(body)
         };
         
-        if(!task.title){
-          res.statusCode = 400;
-          res.setHeader("Content-Type", "application/json");
-          res.end(JSON.stringify({
-            message: "Title is required"
-          }));
+        if(!task.title || !task.title.trim()){
+          sendError(res, 400, "Title is required");
 
           return;
         }
+        
+        if(!allowedStatus.includes(task.status)){
+          sendError(res, 400, "Invalid status");
+          
+          return;
+        }
+        
+        if(!allowedPriority.includes(task.priority)){
+          sendError(res, 400, "Invalid priority");
+          
+          return;
+        }
+        
         tasks.push(task);
         
         console.log(task);
         console.log(task.title);
         console.log(task.priority);
         
-        res.statusCode = 201;
-        res.setHeader("Content-Type", "application/json");
-        
-        res.end(JSON.stringify({
-          message: "Task created successfully",
-          task: task
-        }));
+        sendJson(res, 201, task, "Task created successfully");
       } catch (error) {
-        res.statusCode = 400;
-        res.setHeader("Content-Type", "application/json");
-        res.end(JSON.stringify({
-          message: "invalid JSON"
-        }));
+        sendError(res, 400, "invalid JSON");
       }
     });
     
     return;
   }
   
-  if(req.method === 'PATCH' && req.url.startsWith('/api/tasks/')){
-    console.log("PATCH request received");
-    const parts = req.url.split("/");
+  if(req.method === 'PATCH' && url.pathname.startsWith('/api/tasks/')){
+    const parts = url.pathname.split("/");
     const id = Number(parts[3]);
-
+    
+    if(Number.isNaN(id)){
+      sendError(res, 400, "Invalid ID format");
+      
+      return;
+    }
+    
     const task = tasks.find((task) => task.id === id);
-
+    
     if(!task){
-      res.statusCode = 404;
-      res.setHeader("Content-Type", "application/json");
-      res.end(JSON.stringify({
-        message : "Task not found"
-      }));
+      sendError(res, 404, "Task not found");
       return;
     }
     
@@ -90,50 +177,49 @@ const server = http.createServer((req, res) => {
     req.on("end", () => {
       try {
         const updates = JSON.parse(body);
-
+        
         if("title" in updates && !updates.title.trim()){
-          res.statusCode = 400;
-          res.setHeader("Content-Type", "application/json");
-          res.end(JSON.stringify({
-            message: "Title is required"
-          }));
+          sendError(res, 400, "Title is required");
           return;
         }
-
+        
+        if("status" in updates && !allowedStatus.includes(updates.status)){
+          sendError(res, 400, "Invalid status");
+          return;
+        }
+        
+        if("priority" in updates && !allowedPriority.includes(updates.priority)){
+          sendError(res, 400, "Invalid priority");
+          return;
+        }
+        
         Object.assign(task, updates);
-
+        
         console.log(task);
-
-        res.statusCode = 200;
-        res.setHeader("Content-Type", "application/json");
-        res.end(JSON.stringify({
-          message: "Updated Successfully",
-          task: task
-        }));
+        
+        sendJson(res, 200, task, "Updated Successfully");
       } catch (error) {
-        res.statusCode = 400;
-        res.setHeader("Content-Type", "application/json");
-        res.end(JSON.stringify({
-          message: "invalid JSON"
-        }));
+        sendError(res, 400, "invalid JSON");
       }
     })
     
     return;
   }
   
-  if(req.method === "DELETE" && req.url.startsWith('/api/tasks/')){
-    const parts = req.url.split("/");
+  if(req.method === "DELETE" && url.pathname.startsWith('/api/tasks/')){
+    const parts = url.pathname.split("/");
     const id = Number(parts[3]);
+    
+    if(Number.isNaN(id)){
+      sendError(res, 400, "Invalid ID format");
+      
+      return;
+    }
     
     const task = tasks.find((task) => task.id === id);
     
     if(!task){
-      res.statusCode = 404;
-      res.setHeader("Content-Type", "application/json");
-      res.end(JSON.stringify({
-        message: "Task not found"
-      }));
+      sendError(res, 404, "Task not found");
       
       return;
     }
@@ -142,19 +228,12 @@ const server = http.createServer((req, res) => {
     
     tasks.splice(index, 1);
     
-    res.statusCode = 200;
-    res.setHeader("Content-Type", "application/json");
-    res.end(JSON.stringify({
-      message: "Task Deleted Successfully"
-    }));
+    sendJson(res, 200, null, "Task Deleted Successfully");
 
     return;
   }
   
-  res.statusCode = 404;
-  res.setHeader("Content-Type", "application/json");
-
-  res.end(JSON.stringify({message: "Route not found"}));
+  sendError(res, 404, "Route not found");
 });
 
 server.listen(5000);
