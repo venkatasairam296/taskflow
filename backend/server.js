@@ -1,22 +1,11 @@
 import http from 'http';
 import { sendError, sendJson } from './utils/response.js';
+import { validateTask, validateTaskUpdate } from './utils/validation.js';
 
 const tasks = [
   { id: 1, title: "Learn Node.js", status: "pending", priority: "high" },
   { id: 2, title: "Build API", status: "completed", priority: "low" },
   { id: 3, title: "Practice HTTP", status: "pending", priority: "low" }
-];
-
-const allowedStatus = [
-  "pending",
-  "in-progress",
-  "completed"
-];
-
-const allowedPriority = [
-  "low",
-  "medium",
-  "high"
 ];
 
 const server = http.createServer((req, res) => {
@@ -85,22 +74,11 @@ const server = http.createServer((req, res) => {
           id: newId,
           ...JSON.parse(body)
         };
-        
-        if(!task.title || !task.title.trim()){
-          sendError(res, 400, "Title is required");
 
-          return;
-        }
-        
-        if(!allowedStatus.includes(task.status)){
-          sendError(res, 400, "Invalid status");
-          
-          return;
-        }
-        
-        if(!allowedPriority.includes(task.priority)){
-          sendError(res, 400, "Invalid priority");
-          
+        const error = validateTask(task);
+
+        if(error){
+          sendError(res, 400, error);
           return;
         }
         
@@ -146,18 +124,10 @@ const server = http.createServer((req, res) => {
       try {
         const updates = JSON.parse(body);
         
-        if("title" in updates && !updates.title.trim()){
-          sendError(res, 400, "Title is required");
-          return;
-        }
-        
-        if("status" in updates && !allowedStatus.includes(updates.status)){
-          sendError(res, 400, "Invalid status");
-          return;
-        }
-        
-        if("priority" in updates && !allowedPriority.includes(updates.priority)){
-          sendError(res, 400, "Invalid priority");
+        const error = validateTaskUpdate(updates);
+
+        if(error){
+          sendError(res, 400, error);
           return;
         }
         
