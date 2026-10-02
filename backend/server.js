@@ -1,14 +1,14 @@
 import http from 'http';
+import 'dotenv/config';
 import { sendError, sendJson } from './utils/response.js';
 import { validateTask, validateTaskUpdate } from './utils/validation.js';
+import { loadTasks, saveTasks } from './storage/taskStorage.js';
 
-const tasks = [
-  { id: 1, title: "Learn Node.js", status: "pending", priority: "high" },
-  { id: 2, title: "Build API", status: "completed", priority: "low" },
-  { id: 3, title: "Practice HTTP", status: "pending", priority: "low" }
-];
+const PORT = Number(process.env.PORT) || 5000;
 
-const server = http.createServer((req, res) => {
+const tasks = await loadTasks();
+
+const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
 
   if(req.method === "GET" && url.pathname === "/api/tasks"){
@@ -65,16 +65,26 @@ const server = http.createServer((req, res) => {
     });
 
     
-    req.on("end", () => {
+    req.on("end", async () => {
       try {
         const ids = tasks.length === 0 ? [0] : tasks.map((task) => task.id);
         const newId = Math.max(...ids) + 1;
 
+        let data;
+        try {
+          data = JSON.parse(body);
+        } catch (error) {
+          sendError(res, 400, "Invalid JSON");
+          return;
+        }
+        
         const task = {
           id: newId,
-          ...JSON.parse(body)
+          title: data.title,
+          status: data.status,
+          priority: data.priority
         };
-
+        
         const error = validateTask(task);
 
         if(error){
@@ -83,6 +93,8 @@ const server = http.createServer((req, res) => {
         }
         
         tasks.push(task);
+
+        await saveTasks(tasks);
         
         console.log(task);
         console.log(task.title);
@@ -90,7 +102,7 @@ const server = http.createServer((req, res) => {
         
         sendJson(res, 201, task, "Task created successfully");
       } catch (error) {
-        sendError(res, 400, "invalid JSON");
+        sendError(res, 500, "Internal server error");
       }
     });
     
@@ -120,10 +132,16 @@ const server = http.createServer((req, res) => {
       body += chunk;
     });
     
-    req.on("end", () => {
+    req.on("end", async () => {
       try {
-        const updates = JSON.parse(body);
-        
+        let updates; 
+        try {
+          updates = JSON.parse(body);
+        } catch (error) {
+          sendError(res, 400, "Invalid JSON");
+          return;
+        }
+
         const error = validateTaskUpdate(updates);
 
         if(error){
@@ -132,12 +150,14 @@ const server = http.createServer((req, res) => {
         }
         
         Object.assign(task, updates);
+
+        await saveTasks(tasks);
         
         console.log(task);
         
         sendJson(res, 200, task, "Updated Successfully");
       } catch (error) {
-        sendError(res, 400, "invalid JSON");
+        sendError(res, 500, "Internal server error");
       }
     })
     
@@ -164,9 +184,15 @@ const server = http.createServer((req, res) => {
     
     const index = tasks.findIndex((task) => task.id === id);
     
-    tasks.splice(index, 1);
-    
-    sendJson(res, 200, null, "Task Deleted Successfully");
+    try {
+      tasks.splice(index, 1);
+  
+      await saveTasks(tasks);
+      
+      sendJson(res, 200, null, "Task Deleted Successfully");
+    } catch (error) {
+      sendError(res, 500, "Internal server error");
+    }
 
     return;
   }
@@ -174,4 +200,4 @@ const server = http.createServer((req, res) => {
   sendError(res, 404, "Route not found");
 });
 
-server.listen(5000);
+server.listen(PORT);
