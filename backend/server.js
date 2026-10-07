@@ -3,6 +3,7 @@ import cors from 'cors';
 import 'dotenv/config';
 
 import taskRouter from './routes/taskRoutes.js';
+import { connectDB } from './config/db.js';
 
 const PORT = Number(process.env.PORT) || 5000;
 
@@ -40,6 +41,16 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`TaskFlow server running on port ${PORT}`);
-});
+async function startServer() {
+  try {
+    await connectDB();
+    
+    app.listen(PORT, () => {
+      console.log(`TaskFlow server running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.log("Database connection failed");
+  }
+}
+
+startServer();
