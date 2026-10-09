@@ -19,16 +19,18 @@ const taskSchema = new mongoose.Schema({
   },
 
   category: {
-    type: String
+    type: String,
+    enum: ["learning", "work", "personal", "project", "other"],
+    default: "learning"
   },
 
   dueDate: {
     type: Date
   }
 }, {
-  timestamps: true
+  timestamps: true,
+  toJSON: { virtuals: true }
 });
-
 
 const Task = mongoose.model("Task", taskSchema);
 

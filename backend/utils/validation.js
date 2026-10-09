@@ -10,11 +10,38 @@ const allowedPriority = [
   "high"
 ];
 
+const allowedCategory = [
+  "learning",
+  "work",
+  "personal",
+  "project",
+  "other"
+];
+
 const allowedKeys = [
   "title",
   "status",
-  "priority"
+  "priority",
+  "category",
+  "dueDate"
 ];
+
+function isValidDateString(value) {
+  if(typeof value !== "string") return false;
+
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+
+  if(!match) return false;
+
+  const [, year, month, day] = match;
+  const date = new Date(`${value}T00:00:00.000Z`);
+
+  return (
+    date.getUTCFullYear() === Number(year) &&
+    date.getUTCMonth() + 1 === Number(month) &&
+    date.getUTCDate() === Number(day)
+  );
+}
 
 export function validateTask(task){
   if(typeof task.title !== "string"){
@@ -39,6 +66,14 @@ export function validateTask(task){
 
   if(!allowedPriority.includes(task.priority)){
     return "Invalid priority";
+  }
+
+  if(typeof task.category !== "undefined" && !allowedCategory.includes(task.category)){
+    return "Invalid category";
+  }
+
+  if("dueDate" in task && !isValidDateString(task.dueDate)){
+    return "Invalid due date. Use YYYY-MM-DD format.";
   }
 
   return null;
@@ -79,6 +114,15 @@ export function validateTaskUpdate(updates) {
   
   if("priority" in updates && !allowedPriority.includes(updates.priority)){
     return "Invalid priority";
+  }
+
+  if ("category" in updates &&
+    !allowedCategory.includes(updates.category)) {
+    return "Invalid category";
+  }
+
+  if ("dueDate" in updates && !isValidDateString(updates.dueDate)) {
+    return "Invalid due date. Use YYYY-MM-DD format";
   }
   
   return null;

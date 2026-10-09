@@ -64,7 +64,9 @@ export async function createTask(req, res, next) {
     const task = await Task.create({
       title: data.title.trim(),
       status: data.status,
-      priority: data.priority
+      priority: data.priority,
+      category: data.category,
+      dueDate: data.dueDate
     });
   
     res.status(201).json(task);
