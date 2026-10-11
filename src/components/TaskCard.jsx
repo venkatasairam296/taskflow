@@ -79,11 +79,12 @@ const TaskCard = ({ task, handleEdit }) => {
       return null;
     }
 
+    const taskDate = task.dueDate.split("T")[0];
     const today = new Date().toISOString().split("T")[0];
 
     if (
       task.status !== "completed" &&
-      task.dueDate < today
+      taskDate < today
     ) {
       return {
         label: "Overdue",
@@ -94,7 +95,7 @@ const TaskCard = ({ task, handleEdit }) => {
 
     if (
       task.status !== "completed" &&
-      task.dueDate === today
+      taskDate === today
     ) {
       return {
         label: "Due Today",
@@ -115,7 +116,8 @@ const TaskCard = ({ task, handleEdit }) => {
       return "";
     }
 
-    const [year, month, day] = date.split("-");
+    const dateOnly = date.split("T")[0];
+    const [year, month, day] = dateOnly.split("-");
 
     const formattedDate = new Date(
       Number(year),
