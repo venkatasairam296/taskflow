@@ -1,9 +1,11 @@
 import { useState } from "react";
 import useTasks from "../hooks/useTasks";
 import TaskBoard from "./TaskBoard";
+import DashboardSkeleton from "./DashboardSkeleton.jsx";
+import DashboardError from "./DashboardError.jsx";
 
 const Dashboard = () => {
-  const { tasks, addTask, editTask } = useTasks();
+  const { tasks, addTask, editTask, loading, error, fetchTasks } = useTasks();
 
   const [editingTaskId, setEditingTaskId] = useState(null);
   const [taskTitle, setTaskTitle] = useState("");
@@ -45,7 +47,7 @@ const Dashboard = () => {
     setTitleError("");
   }
 
-  function handleTask() {
+  async function handleTask() {
     if (taskTitle.trim() === "") {
       setTitleError("Task title is required.");
       return;
@@ -53,20 +55,24 @@ const Dashboard = () => {
 
     setTitleError("");
 
+    let success;
+
     if (editingTaskId === null) {
-      addTask(taskTitle.trim(), taskStatus, priority, category, dueDate);
+      success = await addTask(taskTitle.trim(), taskStatus, priority, category, dueDate);
     } else {
-      editTask(
+      success = await editTask(
         taskTitle.trim(),
         taskStatus,
         editingTaskId,
         priority,
         category,
-        dueDate
+        dueDate.split("T")[0]
       );
     }
 
-    resetForm();
+    if(success){
+      resetForm();
+    }
   }
 
   function handleEdit(id) {
@@ -81,7 +87,7 @@ const Dashboard = () => {
     setTaskStatus(task.status);
     setPriority(task.priority);
     setCategory(task.category);
-    setDueDate(task.dueDate);
+    setDueDate(task.dueDate ? task.dueDate.split("T")[0] : "");
     setTitleError("");
 
     window.scrollTo({
@@ -106,24 +112,42 @@ const Dashboard = () => {
 
   const today = new Date().toISOString().split("T")[0];
 
-  const overdueCount = tasks.filter(
-    (task) =>
-      task.dueDate &&
-      task.dueDate < today &&
-      task.status !== "completed"
-  ).length;
+  const overdueCount = tasks.filter((task) => {
+    const taskDate = task.dueDate?.split("T")[0];
 
-  const dueTodayCount = tasks.filter(
-    (task) =>
-      task.dueDate &&
-      task.dueDate === today &&
+    return (
+      taskDate &&
+      taskDate < today &&
       task.status !== "completed"
-  ).length;
+    );
+  }).length;
+
+  const dueTodayCount = tasks.filter((task) => {
+    const taskDate = task.dueDate?.split("T")[0];
+
+    return (
+      taskDate === today &&
+      task.status !== "completed"
+    );
+  }).length
 
   const completionRate =
     allCount === 0
       ? 0
       : Math.round((completedCount / allCount) * 100);
+  
+  if (loading) {
+    return <DashboardSkeleton />;
+  }
+
+  if (error) {
+    return (
+      <DashboardError
+        message={error}
+        onRetry={fetchTasks}
+      />
+    );
+  }
 
   return (
     <section className="min-h-screen bg-slate-50 px-4 py-8 md:px-6 md:py-10">
