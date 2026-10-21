@@ -28,3 +28,4 @@ dist-ssr
 !.env.example
 
 backend/learning/*
+!backend/learning/validation-test.js
