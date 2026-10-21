@@ -44,6 +44,13 @@ function isValidDateString(value) {
 }
 
 export function validateTask(task){
+  if(
+    typeof task !== "object" ||
+    task === null ||
+    Array.isArray(task)
+  ){
+    return "Invalid task data";
+  }
   if(typeof task.title !== "string"){
     return "Title must be string";
   }
@@ -68,7 +75,14 @@ export function validateTask(task){
     return "Invalid priority";
   }
 
-  if(typeof task.category !== "undefined" && !allowedCategory.includes(task.category)){
+  if(typeof task.category !== "undefined" && typeof task.category !== "string"){
+    return "Category must be string";
+  }
+
+  if (
+    typeof task.category !== "undefined" &&
+    !allowedCategory.includes(task.category)
+  ) {
     return "Invalid category";
   }
 
@@ -80,6 +94,14 @@ export function validateTask(task){
 }
 
 export function validateTaskUpdate(updates) {
+  if(
+    typeof updates !== "object" ||
+    updates === null ||
+    Array.isArray(updates)
+  ){
+    return "Invalid task data";
+  }
+
   const keys = Object.keys(updates);
   
   if(keys.length === 0){
@@ -114,6 +136,9 @@ export function validateTaskUpdate(updates) {
   
   if("priority" in updates && !allowedPriority.includes(updates.priority)){
     return "Invalid priority";
+  }
+  if("category" in updates && typeof updates.category !== "string"){
+    return "Category must be string";
   }
 
   if ("category" in updates &&

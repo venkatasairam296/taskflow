@@ -1,23 +1,12 @@
-import { validateTask, validateTaskUpdate } from "../utils/validation.js";
-import Task from "../models/Task.js";
 import mongoose from "mongoose";
+import { loadTasks, loadTaskById, createTask as newTask, updateTask as modifyTask, deleteTask as removeTask } from "../services/taskService.js";
 
 export async function getTasks(req, res, next) {
   try {
     const status = req.query.status;
     const priority = req.query.priority;
     
-    const filter = {};
-    
-    if(status){
-      filter.status = status;
-    }
-    
-    if(priority){
-      filter.priority = priority;
-    }
-    
-    const tasks = await Task.find(filter);
+    const tasks = await loadTasks({ status, priority });
     
     res.status(200).json(tasks);
   } catch (error) {
@@ -35,7 +24,7 @@ export async function getTaskById(req, res, next) {
       });
     }
 
-    const task = await Task.findById(id);
+    const task = await loadTaskById(id);
 
     if(!task){
       return res.status(404).json({
@@ -51,23 +40,9 @@ export async function getTaskById(req, res, next) {
 
 export async function createTask(req, res, next) {
   try {
-    const validationError = validateTask(req.body);
-  
-    if(validationError){
-      return res.status(400).json({
-        message: validationError
-      });
-    }
-    
     const data = req.body;
 
-    const task = await Task.create({
-      title: data.title.trim(),
-      status: data.status,
-      priority: data.priority,
-      category: data.category,
-      dueDate: data.dueDate
-    });
+    const task = await newTask(data);
   
     res.status(201).json(task);
   } catch (error) {
@@ -84,22 +59,8 @@ export async function updateTask(req, res, next) {
         message: "Invalid ID format"
       });
     }
-    
-    const validationError = validateTaskUpdate(req.body);
-    if(validationError){
-      return res.status(400).json({
-        message: validationError
-      });
-    }
 
-    const task = await Task.findByIdAndUpdate(
-      id,
-      req.body,
-      {
-        returnDocument: "after",
-        runValidators: true
-      }
-    );
+    const task = await modifyTask(id, req.body);
     
     if(!task){
       return res.status(404).json({
@@ -123,7 +84,7 @@ export async function deleteTask(req, res, next) {
       });
     }
 
-    const task = await Task.findByIdAndDelete(id);
+    const task = await removeTask(id);
 
     if(!task){
       return res.status(404).json({

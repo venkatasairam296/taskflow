@@ -36,9 +36,15 @@ app.get('/api/test-error', (req, res, next) => {
 app.use((err, req, res, next) => {
   console.log(err.message);
 
-  res.status(500).json({
-    message: "Internal server error"
-  });
+  if(Number.isInteger(err.status) && err.status >= 400 && err.status <= 499){
+    res.status(err.status).json({
+      message: err.message
+    });
+  }else{
+    res.status(500).json({
+      message: "Internal server error"
+    });
+  }
 });
 
 async function startServer() {
@@ -49,7 +55,8 @@ async function startServer() {
       console.log(`TaskFlow server running on port ${PORT}`);
     });
   } catch (error) {
-    console.log("Database connection failed");
+    console.error("Database connection failed:", error.message);
+    process.exitCode = 1;
   }
 }
 
