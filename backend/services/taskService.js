@@ -1,8 +1,10 @@
 import Task from "../models/Task.js";
 import { validateTask, validateTaskUpdate } from '../utils/validation.js';
 
-export async function loadTasks({ status, priority }) {
+export async function loadTasks({ status, priority, userId }) {
   let filter = {};
+
+  filter.owner = userId;
 
   if(status){
     filter.status = status;
@@ -17,13 +19,16 @@ export async function loadTasks({ status, priority }) {
   return tasks;
 }
 
-export async function loadTaskById(id) {
-  const task = await Task.findById(id);
+export async function loadTaskById(id, userId) {
+  const task = await Task.findOne({
+    _id: id,
+    owner: userId
+  });
 
   return task;
 }
 
-export async function createTask( taskData ) {
+export async function createTask( taskData, userId ) {
   const validationError = validateTask( taskData );
 
   if(validationError){
@@ -39,14 +44,15 @@ export async function createTask( taskData ) {
     status,
     priority,
     category,
-    dueDate
+    dueDate,
+    owner: userId
   });
 
   return task;
 }
 
-export async function updateTask(id, updates) {
-  const validationError = validateTaskUpdate(updates);
+export async function updateTask(id, data, userId) {
+  const validationError = validateTaskUpdate(data);
 
   if(validationError){
     const error = new Error(validationError);
@@ -54,8 +60,21 @@ export async function updateTask(id, updates) {
     throw error;
   }
 
-  const task = await Task.findByIdAndUpdate(
-    id,
+  const allowedFields = ['title', 'status', 'priority', 'category', 'dueDate'];
+
+  const updates = {};
+
+  for(const field of allowedFields){
+    if(field in data){
+      updates[field] = data[field];
+    }
+  }
+
+  const task = await Task.findOneAndUpdate(
+    {
+      _id: id,
+      owner: userId
+    },
     updates,
     {
       returnDocument: "after",
@@ -66,8 +85,11 @@ export async function updateTask(id, updates) {
   return task;
 }
 
-export async function deleteTask(id) {
-  const task = await Task.findByIdAndDelete(id);
+export async function deleteTask(id, userId) {
+  const task = await Task.findOneAndDelete({
+    _id: id,
+    owner: userId
+  });
 
   return task;
 }

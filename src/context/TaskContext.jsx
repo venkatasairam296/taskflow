@@ -1,5 +1,6 @@
 import { createContext, useCallback, useEffect, useState } from "react";
 import { createTask, getTasks, updateTask, deleteTask as deleteTaskApi } from "../services/taskApi.js";
+import { useAuth } from '../hooks/useAuth.js';
 
 const TaskContext = createContext();
 
@@ -8,7 +9,9 @@ export function TaskProvider({children}) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  
+  const { user, loading: authLoading } = useAuth();
+
+
   async function addTask(title, status, priority, category, dueDate) {
     try {
       setError(null);
@@ -20,9 +23,9 @@ export function TaskProvider({children}) {
         category,
         dueDate
       };
-  
+
       const task = await createTask(taskData);
-  
+
       setTasks((prevTasks) => [...prevTasks, task]);
 
       return true;
@@ -32,7 +35,7 @@ export function TaskProvider({children}) {
       return false;
     }
   }
-  
+
   async function editTask(title, status, editingTaskId, priority, category, dueDate) {
     try {
       setError(null);
@@ -45,7 +48,7 @@ export function TaskProvider({children}) {
       };
 
       const updatedTask = await updateTask(editingTaskId, taskData);
-      
+
       setTasks((prevTasks) =>
         prevTasks.map((task) => {
           if (task.id === editingTaskId) {
@@ -54,7 +57,7 @@ export function TaskProvider({children}) {
               ...updatedTask
             };
           }
-          
+
           return task;
         })
       );
@@ -65,19 +68,19 @@ export function TaskProvider({children}) {
       return false;
     }
   }
-  
+
   async function completeTask(id) {
     try {
       setError(null);
 
       const data = await updateTask(id, { status: "completed" });
-      
+
       setTasks((prevTasks) =>
         prevTasks.map((task) => {
           if (task.id === id) {
             return data;
           }
-          
+
           return task;
         })
       );
@@ -85,7 +88,7 @@ export function TaskProvider({children}) {
       setError(error.message || "Failed to update task");
     }
   }
-  
+
   async function deleteTask(id){
     try {
       await deleteTaskApi(id);
@@ -116,19 +119,35 @@ export function TaskProvider({children}) {
     let ignore = false;
 
     async function loadTasks() {
-      try {
-        const data = await getTasks();
+      if(authLoading){
+        setLoading(true);
+        return;
+      }
 
-        if (!ignore) {
-          setTasks(data);
+      if(!user){
+        if(!ignore){
+          setTasks([]);
           setError(null);
+          setLoading(false);
+        }
+        return;
+      }
+
+      try {
+        setLoading(true);
+        setError(null);
+
+        const tasks = await getTasks();
+
+        if(!ignore){
+          setTasks(tasks);
         }
       } catch (error) {
-        if (!ignore) {
+        if(!ignore){
           setError(error.message || "Failed to load tasks");
         }
-      } finally {
-        if (!ignore) {
+      }finally{
+        if(!ignore) {
           setLoading(false);
         }
       }
@@ -139,18 +158,18 @@ export function TaskProvider({children}) {
     return () => {
       ignore = true;
     };
-  }, []);
+  }, [user, authLoading]);
 
   return (
-    <TaskContext.Provider 
+    <TaskContext.Provider
       value={{
-        tasks, 
-        loading, 
-        error, 
+        tasks,
+        loading,
+        error,
         fetchTasks,
-        addTask, 
-        editTask, 
-        completeTask, 
+        addTask,
+        editTask,
+        completeTask,
         deleteTask}}>
       {children}
     </TaskContext.Provider>

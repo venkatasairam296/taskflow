@@ -103,7 +103,7 @@ export function validateTaskUpdate(updates) {
   }
 
   const keys = Object.keys(updates);
-  
+
   if(keys.length === 0){
     return "No fields to update";
   }
@@ -125,7 +125,7 @@ export function validateTaskUpdate(updates) {
   if("status" in updates && typeof updates.status !== "string"){
     return "Status must be string";
   }
-  
+
   if("status" in updates && !allowedStatus.includes(updates.status)){
     return "Invalid status";
   }
@@ -133,7 +133,7 @@ export function validateTaskUpdate(updates) {
   if("priority" in updates && typeof updates.priority !== "string"){
     return "Priority must be string";
   }
-  
+
   if("priority" in updates && !allowedPriority.includes(updates.priority)){
     return "Invalid priority";
   }
@@ -146,9 +146,9 @@ export function validateTaskUpdate(updates) {
     return "Invalid category";
   }
 
-  if ("dueDate" in updates && !isValidDateString(updates.dueDate)) {
+  if ("dueDate" in updates && !isValidDateString(updates.dueDate) && updates.dueDate !== null) {
     return "Invalid due date. Use YYYY-MM-DD format";
   }
-  
+
   return null;
 }

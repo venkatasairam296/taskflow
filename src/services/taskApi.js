@@ -1,9 +1,11 @@
 const API_URL =
-  import.meta.env.VITE_API_URL || "http://localhost:5000/api/tasks";
+  import.meta.env.VITE_TASK_API_URL || "http://localhost:5000/api/tasks";
 
 // Fetch all tasks
 export async function getTasks() {
-  const response = await fetch(API_URL);
+  const response = await fetch(API_URL, {
+    credentials: "include"
+  });
   const data = await response.json();
 
   if (!response.ok) {
@@ -21,6 +23,7 @@ export async function createTask(taskData) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify(taskData),
+    credentials: "include"
   });
 
   const data = await response.json();
@@ -40,6 +43,7 @@ export async function updateTask(id, taskData) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify(taskData),
+    credentials: "include"
   });
 
   const data = await response.json();
@@ -55,6 +59,7 @@ export async function updateTask(id, taskData) {
 export async function deleteTask(id) {
   const response = await fetch(`${API_URL}/${id}`, {
     method: "DELETE",
+    credentials: "include"
   });
 
   if (!response.ok) {
