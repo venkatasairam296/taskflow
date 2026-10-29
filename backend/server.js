@@ -65,6 +65,7 @@ app.get('/api/test-error', (req, res, next) => {
   next(error);
 });
 
+// eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
   console.log(err.message);
 

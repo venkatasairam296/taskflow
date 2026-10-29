@@ -3,9 +3,10 @@ import useTasks from "../hooks/useTasks";
 import TaskBoard from "./TaskBoard";
 import DashboardSkeleton from "./DashboardSkeleton.jsx";
 import DashboardError from "./DashboardError.jsx";
+import { getLocalDateString } from "../utils/date.js";
 
 const Dashboard = () => {
-  const { tasks, addTask, editTask, loading, error, fetchTasks } = useTasks();
+  const { tasks, addTask, editTask, loading, loadError, operationError, fetchTasks } = useTasks();
 
   const [editingTaskId, setEditingTaskId] = useState(null);
   const [taskTitle, setTaskTitle] = useState("");
@@ -16,11 +17,12 @@ const Dashboard = () => {
   const [category, setCategory] = useState("learning");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [dueDate, setDueDate] = useState(
-    new Date().toISOString().split("T")[0]
+    getLocalDateString()
   );
   const [dueDateFilter, setDueDateFilter] = useState("all");
   const [sortOption, setSortOption] = useState("none");
   const [titleError, setTitleError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   function clearFilters() {
     setSearchTerm("");
@@ -43,36 +45,44 @@ const Dashboard = () => {
     setTaskStatus("pending");
     setPriority("low");
     setCategory("learning");
-    setDueDate(new Date().toISOString().split("T")[0]);
+    setDueDate(getLocalDateString());
     setTitleError("");
   }
 
   async function handleTask() {
+    if(submitting) return;
+
     if (taskTitle.trim() === "") {
       setTitleError("Task title is required.");
       return;
     }
 
+    setSubmitting(true);
     setTitleError("");
 
-    let success;
+    try {
+      let success;
 
-    if (editingTaskId === null) {
-      success = await addTask(taskTitle.trim(), taskStatus, priority, category, dueDate);
-    } else {
-      success = await editTask(
-        taskTitle.trim(),
-        taskStatus,
-        editingTaskId,
-        priority,
-        category,
-        dueDate.split("T")[0]
-      );
+      if (editingTaskId === null) {
+        success = await addTask(taskTitle.trim(), taskStatus, priority, category, dueDate);
+      } else {
+        success = await editTask(
+          taskTitle.trim(),
+          taskStatus,
+          editingTaskId,
+          priority,
+          category,
+          dueDate
+        );
+      }
+
+      if(success){
+        resetForm();
+      }
+    } finally{
+      setSubmitting(false);
     }
 
-    if(success){
-      resetForm();
-    }
   }
 
   function handleEdit(id) {
@@ -110,7 +120,7 @@ const Dashboard = () => {
     (task) => task.status === "completed"
   ).length;
 
-  const today = new Date().toISOString().split("T")[0];
+  const today = getLocalDateString();
 
   const overdueCount = tasks.filter((task) => {
     const taskDate = task.dueDate?.split("T")[0];
@@ -135,15 +145,15 @@ const Dashboard = () => {
     allCount === 0
       ? 0
       : Math.round((completedCount / allCount) * 100);
-  
+
   if (loading) {
     return <DashboardSkeleton />;
   }
 
-  if (error) {
+  if (loadError) {
     return (
       <DashboardError
-        message={error}
+        message={loadError}
         onRetry={fetchTasks}
       />
     );
@@ -181,6 +191,15 @@ const Dashboard = () => {
             </div>
           </div>
         </header>
+
+        {operationError && (
+          <div
+            role="alert"
+            className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+          >
+            {operationError}
+          </div>
+        )}
 
         {/* Task Form */}
         <section className="mb-8 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -234,6 +253,8 @@ const Dashboard = () => {
                     handleTask();
                   }
                 }}
+
+                disabled={submitting}
                 className={`w-full rounded-xl border bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:bg-white focus:ring-4 ${
                   titleError
                     ? "border-red-400 focus:border-red-500 focus:ring-red-100"
@@ -262,6 +283,7 @@ const Dashboard = () => {
                 <select
                   id="task-status"
                   value={taskStatus}
+                  disabled={submitting}
                   onChange={(e) => setTaskStatus(e.target.value)}
                   className="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
                 >
@@ -282,6 +304,7 @@ const Dashboard = () => {
                 <select
                   id="task-priority"
                   value={priority}
+                  disabled={submitting}
                   onChange={(e) => setPriority(e.target.value)}
                   className="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
                 >
@@ -302,6 +325,7 @@ const Dashboard = () => {
                 <select
                   id="task-category"
                   value={category}
+                  disabled={submitting}
                   onChange={(e) => setCategory(e.target.value)}
                   className="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
                 >
@@ -324,6 +348,7 @@ const Dashboard = () => {
                 <input
                   id="task-due-date"
                   type="date"
+                  disabled={submitting}
                   value={dueDate}
                   onChange={(e) => setDueDate(e.target.value)}
                   className="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
@@ -337,6 +362,7 @@ const Dashboard = () => {
                 <button
                   type="button"
                   onClick={resetForm}
+                  disabled={submitting}
                   className="rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-slate-100"
                 >
                   Cancel
@@ -346,11 +372,14 @@ const Dashboard = () => {
               <button
                 type="button"
                 onClick={handleTask}
-                className="rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-100 active:scale-[0.98]"
+                disabled={submitting}
+                className="rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-100 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {editingTaskId !== null
-                  ? "Save Changes"
-                  : "Add Task"}
+                {submitting
+                  ? "Saving..."
+                  : editingTaskId !== null
+                    ? "Save Changes"
+                    : "Add Task"}
               </button>
             </div>
           </div>

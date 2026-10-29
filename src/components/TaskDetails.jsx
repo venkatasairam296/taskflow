@@ -5,7 +5,7 @@ const TaskDetails = () => {
   const { id } = useParams();
   const { tasks } = useTasks();
 
-  const task = tasks.find((task) => task.id === Number(id));
+  const task = tasks.find((task) => String(task.id) === id);
 
   if (!task) {
     return (

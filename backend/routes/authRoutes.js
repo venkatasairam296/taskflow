@@ -40,6 +40,12 @@ router.post('/login', async (req, res, next) => {
 
 router.get('/me', async (req, res, next) => {
   try {
+    if(!req.session?.userId){
+      return res.status(401).json({
+        message: "Authentication required"
+      });
+    }
+
     const user = await getCurrentUser(req.session.userId);
 
     return res.status(200).json(user);
