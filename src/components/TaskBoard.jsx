@@ -1,5 +1,6 @@
-import useTasks from "../hooks/useTasks";
-import TaskColumn from "./TaskColumn";
+import useTasks from "../hooks/useTasks.js";
+import { getLocalDateString } from "../utils/date.js";
+import TaskColumn from "./TaskColumn.jsx";
 
 const TaskBoard = ({
   handleEdit,
@@ -18,7 +19,7 @@ const TaskBoard = ({
 }) => {
   const { tasks } = useTasks();
 
-  const today = new Date().toISOString().split("T")[0];
+  const today = getLocalDateString();
 
   const filteredTasks = tasks.filter((task) => {
     const matchesSearch = task.title
@@ -81,6 +82,7 @@ const TaskBoard = ({
 
   const hasTasks = tasks.length > 0;
   const hasNoMatchingTasks = sortedTasks.length === 0;
+  const resultCount = sortedTasks.length;
 
   const pendingTasks = sortedTasks.filter(
     (task) => task.status === "pending"
@@ -238,6 +240,14 @@ const TaskBoard = ({
         </div>
       </div>
 
+      <p
+        className="sr-only"
+        role="status"
+        aria-live="polite"
+      >
+        {resultCount} {resultCount === 1 ? "task" : "tasks"} found.
+      </p>
+
       {/* Empty State */}
       {hasNoMatchingTasks && (
         <div className="mb-6 rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center shadow-sm">
@@ -259,7 +269,7 @@ const TaskBoard = ({
               <button
                 type="button"
                 onClick={clearFilters}
-                className="mt-5 rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-100"
+                className="mt-5 rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               >
                 Clear Filters
               </button>

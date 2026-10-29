@@ -7,14 +7,15 @@ const TaskContext = createContext();
 export function TaskProvider({children}) {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [loadError, setLoadError] = useState(null);
+  const [operationError, setOperationError] = useState(null)
 
   const { user, loading: authLoading } = useAuth();
 
 
   async function addTask(title, status, priority, category, dueDate) {
     try {
-      setError(null);
+      setOperationError(null);
 
       const taskData = {
         title,
@@ -30,7 +31,7 @@ export function TaskProvider({children}) {
 
       return true;
     } catch (error) {
-      setError(error.message || "Failed to create task");
+      setOperationError(error.message || "Failed to create task");
 
       return false;
     }
@@ -38,7 +39,7 @@ export function TaskProvider({children}) {
 
   async function editTask(title, status, editingTaskId, priority, category, dueDate) {
     try {
-      setError(null);
+      setOperationError(null);
       const taskData = {
         title,
         status,
@@ -64,14 +65,14 @@ export function TaskProvider({children}) {
 
       return true;
     } catch (error) {
-      setError(error.message || "Failed to update task");
+      setOperationError(error.message || "Failed to update task");
       return false;
     }
   }
 
   async function completeTask(id) {
     try {
-      setError(null);
+      setOperationError(null);
 
       const data = await updateTask(id, { status: "completed" });
 
@@ -85,31 +86,33 @@ export function TaskProvider({children}) {
         })
       );
     } catch (error) {
-      setError(error.message || "Failed to update task");
+      setOperationError(error.message || "Failed to update task");
     }
   }
 
   async function deleteTask(id){
     try {
+      setOperationError(null);
+
       await deleteTaskApi(id);
 
       setTasks((prevTasks) =>
         prevTasks.filter((task) => task.id !== id)
       );
     } catch (error) {
-      setError(error.message || "Failed to delete task");
+      setOperationError(error.message || "Failed to delete task");
     }
   }
 
   const fetchTasks = useCallback(async () => {
     setLoading(true);
-    setError(null);
+    setLoadError(null);
 
     try {
       const data = await getTasks();
       setTasks(data);
     } catch (error) {
-      setError(error.message || "Failed to load tasks");
+      setLoadError(error.message || "Failed to load tasks");
     } finally {
       setLoading(false);
     }
@@ -127,7 +130,8 @@ export function TaskProvider({children}) {
       if(!user){
         if(!ignore){
           setTasks([]);
-          setError(null);
+          setLoadError(null);
+          setOperationError(null);
           setLoading(false);
         }
         return;
@@ -135,7 +139,8 @@ export function TaskProvider({children}) {
 
       try {
         setLoading(true);
-        setError(null);
+        setLoadError(null);
+        setOperationError(null);
 
         const tasks = await getTasks();
 
@@ -144,7 +149,7 @@ export function TaskProvider({children}) {
         }
       } catch (error) {
         if(!ignore){
-          setError(error.message || "Failed to load tasks");
+          setLoadError(error.message || "Failed to load tasks");
         }
       }finally{
         if(!ignore) {
@@ -165,7 +170,8 @@ export function TaskProvider({children}) {
       value={{
         tasks,
         loading,
-        error,
+        loadError,
+        operationError,
         fetchTasks,
         addTask,
         editTask,

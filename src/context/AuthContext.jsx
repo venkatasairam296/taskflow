@@ -49,25 +49,73 @@ export function AuthProvider({ children }) {
     }
   }
 
-  useEffect(() => {
-    async function currentUser() {
-      try {
-        setError(null);
+  async function checkAuth() {
+    try {
+      setLoading(true);
+      setError(null);
 
-        const user = await getCurrentUser();
-        setUser(user);
-      } catch (error) {
-        setError(error.message || "Failed to get user details");
+      const user = await getCurrentUser();
+      setUser(user);
+    } catch (error) {
+      if(error.status === 401){
         setUser(null);
-      }finally{
-        setLoading(false);
+        setError(null);
+      }else{
+        setError(error.message || "Failed to get user details");
+      }
+    }finally{
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    let cancelled = false;
+
+    function handleSessionExpired(){
+      setUser(null);
+      setError(null);
+    }
+
+    async function initializeAuth() {
+      try {
+        const currentUser = await getCurrentUser();
+
+        if(!cancelled){
+          setUser(currentUser);
+        }
+      } catch (error) {
+        if(!cancelled){
+          if(error.status === 401){
+            setUser(null);
+            setError(null);
+          }else{
+            setError(error.message || "Failed to get user details");
+          }
+        }
+      } finally {
+        if(!cancelled){
+          setLoading(false);
+        }
       }
     }
-    currentUser();
+
+    window.addEventListener(
+      "taskflow:session-expired",
+      handleSessionExpired
+    );
+
+    initializeAuth();
+
+    return () => {
+      window.removeEventListener(
+        "taskflow:session-expired",
+        handleSessionExpired
+      );
+    };
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, error, login, register, logout }} >
+    <AuthContext.Provider value={{ user, loading, error, login, register, logout, checkAuth }} >
       { children }
     </AuthContext.Provider>
   )

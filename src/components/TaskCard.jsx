@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
-import useTasks from "../hooks/useTasks";
+import useTasks from "../hooks/useTasks.js";
+import { getLocalDateString } from "../utils/date.js";
 
 const TaskCard = ({ task, handleEdit }) => {
   const { deleteTask, completeTask } = useTasks();
@@ -80,7 +81,7 @@ const TaskCard = ({ task, handleEdit }) => {
     }
 
     const taskDate = task.dueDate.split("T")[0];
-    const today = new Date().toISOString().split("T")[0];
+    const today = getLocalDateString();
 
     if (
       task.status !== "completed" &&
@@ -150,7 +151,8 @@ const TaskCard = ({ task, handleEdit }) => {
 
           <Link
             to={`/tasks/${task.id}`}
-            className={`break-words text-sm font-bold leading-6 md:text-base ${
+            aria-label={`View task details: ${task.title}`}
+            className={`break-words text-sm font-bold leading-6 md:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded ${
               isCompleted
                 ? "text-slate-400 line-through"
                 : "text-slate-900"
@@ -212,7 +214,8 @@ const TaskCard = ({ task, handleEdit }) => {
         <button
           type="button"
           onClick={() => handleEdit(task.id)}
-          className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-slate-100 focus:outline-none focus:ring-4 focus:ring-slate-100"
+          aria-label={`Edit task: ${task.title}`}
+          className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
         >
           Edit
         </button>
@@ -221,7 +224,8 @@ const TaskCard = ({ task, handleEdit }) => {
           <button
             type="button"
             onClick={() => completeTask(task.id)}
-            className="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-100"
+            aria-label={`Mark task as completed: ${task.title}`}
+            className="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           >
             Complete
           </button>
@@ -230,7 +234,8 @@ const TaskCard = ({ task, handleEdit }) => {
         <button
           type="button"
           onClick={() => deleteTask(task.id)}
-          className="rounded-lg bg-red-500 px-3 py-2 text-xs font-semibold text-white transition hover:bg-red-600 focus:outline-none focus:ring-4 focus:ring-red-100"
+          aria-label={`Delete Task: ${task.title}`}
+          className="rounded-lg bg-red-500 px-3 py-2 text-xs font-semibold text-white transition hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
         >
           Delete
         </button>

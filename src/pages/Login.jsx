@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useAuth } from "../hooks/useAuth.js";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -10,6 +10,7 @@ const Login = () => {
   const { login } = useAuth();
 
   const navigate = useNavigate();
+  const location = useLocation();
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -19,7 +20,14 @@ const Login = () => {
 
       await login(email, password);
 
-      navigate("/tasks");
+      const destination = location.state?.from;
+
+      navigate(
+        destination
+          ? `${destination.pathname}${destination.search}${destination.hash}`
+          : "/tasks",
+          { replace: true }
+      );
     } catch (error) {
       setError(error.message);
     }
